@@ -1,0 +1,193 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection, render } from 'astro:content';
+
+// Generate static paths for all blog posts
+export async function getStaticPaths() {
+  const posts = await getCollection('posts');
+  return posts.map(post => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+
+// Helper function to format dates
+function formatDate(dateString: string | Date) {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+}
+---
+
+<Layout title={post.data.title} description={post.data.excerpt}>
+  <article class="blog-post-section">
+    <div class="container blog-container">
+      <a href="/blog" class="back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        Back to Journal
+      </a>
+
+      <header class="post-header text-center">
+        <span class="post-date">{formatDate(post.data.date)}</span>
+        <h1 class="post-title">{post.data.title}</h1>
+        <div class="post-author">
+          <span class="author-avatar">🌿</span>
+          <span class="author-name">by Earth & Lather Studio</span>
+        </div>
+      </header>
+
+      {post.data.image && (
+        <div class="post-image-wrapper">
+          <img src={post.data.image} alt={post.data.title} class="post-image" />
+        </div>
+      )}
+
+      <div class="post-body markdown-body">
+        <Content />
+      </div>
+    </div>
+  </article>
+</Layout>
+
+<style>
+  .blog-post-section {
+    background-color: var(--bg-primary);
+    padding: 4rem 0 6rem 0;
+  }
+
+  .blog-container {
+    max-width: 760px; /* Narrower width for optimal reading comfort */
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 3rem;
+  }
+
+  .back-link:hover {
+    color: var(--color-sage);
+    transform: translateX(-3px);
+  }
+
+  .text-center {
+    text-align: center;
+  }
+
+  .post-header {
+    margin-bottom: 3rem;
+  }
+
+  .post-date {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-accent);
+    font-weight: 600;
+    margin-bottom: 0.8rem;
+    display: inline-block;
+  }
+
+  .post-title {
+    font-size: 3rem;
+    color: var(--text-primary);
+    line-height: 1.15;
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.01em;
+  }
+
+  @media (max-width: 600px) {
+    .post-title {
+      font-size: 2.2rem;
+    }
+  }
+
+  .post-author {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+
+  .author-avatar {
+    background-color: var(--bg-secondary);
+    padding: 0.3rem;
+    border-radius: 50%;
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .post-image-wrapper {
+    margin-bottom: 4rem;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--border-color);
+  }
+
+  .post-image {
+    width: 100%;
+    height: auto;
+    max-height: 480px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .post-body {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: var(--text-primary);
+    font-weight: 300;
+  }
+
+  /* Markdown body overrides for articles */
+  .markdown-body :global(h2) {
+    font-family: var(--font-serif);
+    font-size: 1.8rem;
+    color: var(--text-primary);
+    margin: 2.5rem 0 1rem 0;
+    font-weight: 600;
+  }
+
+  .markdown-body :global(h3) {
+    font-family: var(--font-serif);
+    font-size: 1.4rem;
+    color: var(--text-primary);
+    margin: 2rem 0 0.8rem 0;
+    font-weight: 600;
+  }
+
+  .markdown-body :global(p) {
+    margin-bottom: 1.5rem;
+  }
+
+  .markdown-body :global(ul, ol) {
+    margin: 1.5rem 0;
+    padding-left: 1.5rem;
+  }
+
+  .markdown-body :global(li) {
+    margin-bottom: 0.8rem;
+    position: relative;
+    padding-left: 0.5rem;
+  }
+
+  .markdown-body :global(blockquote) {
+    border-left: 3px solid var(--color-sage);
+    padding-left: 1.5rem;
+    font-style: italic;
+    color: var(--text-secondary);
+    margin: 2rem 0;
+    font-size: 1.2rem;
+  }
+</style>

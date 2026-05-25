@@ -22,3 +22,10 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# sandbox & showroom files to ignore in template repo
+showroom/
+PROJECT_STATUS.md
+README_AGENTS.md
+Micro-SaaS_Astro_Boilerplate_Feasibility_PL.pdf
+feasibility_text.txt

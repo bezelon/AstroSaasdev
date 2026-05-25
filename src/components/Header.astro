@@ -1,0 +1,155 @@
+---
+---
+<header class="header">
+  <div class="container header-container">
+    <a href="/" class="logo">
+      <span class="logo-text">Earth & Lather</span>
+      <span class="logo-sub">Artisanal Soapry</span>
+    </a>
+    
+    <nav class="nav">
+      <a href="/" class="nav-link">Home</a>
+      <a href="/products" class="nav-link">Shop</a>
+      <a href="/blog" class="nav-link">Blog</a>
+      <a href="/admin/index.html" class="nav-link admin-btn" target="_blank">CMS Admin</a>
+    </nav>
+    
+    <div class="cart-icon">
+      <!-- Simple styling placeholder for cart indicator -->
+      <span class="cart-dot"></span>
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+    </div>
+  </div>
+</header>
+
+<style>
+  .header {
+    height: var(--header-height);
+    background-color: rgba(250, 247, 242, 0.9); /* Glassmorphism background */
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    transition: var(--transition-smooth);
+  }
+
+  .header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+  .logo {
+    display: flex;
+    flex-direction: column;
+    color: var(--text-primary);
+  }
+
+  .logo-text {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .logo-sub {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--text-secondary);
+    margin-top: 0.1rem;
+  }
+
+  .nav {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+  }
+
+  .nav-link {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 400;
+    color: var(--text-primary);
+    position: relative;
+    padding: 0.5rem 0;
+  }
+
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background-color: var(--color-accent);
+    transition: var(--transition-smooth);
+  }
+
+  .nav-link:hover::after {
+    width: 100%;
+  }
+
+  .admin-btn {
+    border: 1px solid var(--color-sage);
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    color: var(--color-sage);
+    font-size: 0.8rem;
+    transition: var(--transition-bounce);
+  }
+
+  .admin-btn:hover {
+    background-color: var(--color-sage);
+    color: var(--bg-primary);
+    border-color: var(--color-sage);
+    transform: translateY(-1px);
+  }
+  
+  .admin-btn::after {
+    display: none;
+  }
+
+  .cart-icon {
+    position: relative;
+    cursor: pointer;
+    color: var(--text-primary);
+    padding: 0.5rem;
+    transition: var(--transition-bounce);
+  }
+
+  .cart-icon:hover {
+    transform: scale(1.1);
+    color: var(--color-accent);
+  }
+
+  .cart-dot {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 8px;
+    height: 8px;
+    background-color: var(--color-accent);
+    border-radius: 50%;
+  }
+
+  @media (max-width: 600px) {
+    .nav {
+      gap: 1rem;
+    }
+    
+    .logo-text {
+      font-size: 1.2rem;
+    }
+    
+    .logo-sub {
+      font-size: 0.6rem;
+    }
+  }
+</style>

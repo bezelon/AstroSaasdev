@@ -1,0 +1,58 @@
+# Sveltia CMS Configuration File
+# Read more at: https://sveltiacms.app/docs
+
+backend:
+  name: github
+  repo: Lukasz/astro-soap-shop # Placeholder - replace with your repository (e.g. username/repo)
+  branch: main
+  base_url: https://astro-soap-shop.pages.dev # Placeholder - replace with your Cloudflare Pages URL
+  auth_endpoint: api/auth
+
+# Media folders
+# Sveltia will upload files here, and Astro will serve them from this path
+media_folder: "public/images/uploads"
+public_folder: "/images/uploads"
+
+# Editorial workflow creates PRs on GitHub instead of direct commits (avoids merge conflicts)
+publish_mode: editorial_workflow
+
+collections:
+  - name: "products"
+    label: "Soap Products"
+    label_singular: "Soap Product"
+    folder: "src/content/products"
+    create: true
+    slug: "{{slug}}"
+    format: "yaml-frontmatter"
+    extension: "md"
+    fields:
+      - { label: "Product Name", name: "title", widget: "string", required: true }
+      - { label: "Price (GBP £)", name: "price", widget: "number", value_type: "float", required: true }
+      - { label: "Product Image", name: "image", widget: "image", required: false }
+      - { label: "Short Description", name: "description", widget: "text", required: true }
+      - { label: "Ingredients (Skład)", name: "ingredients", widget: "string", required: false }
+      - { label: "Available", name: "available", widget: "boolean", default: true }
+      - label: "Full Details (Markdown)"
+        name: "body"
+        widget: "markdown"
+        required: false
+        buttons: ["bold", "italic", "code", "link", "heading-two", "heading-three", "quote", "bulleted-list", "numbered-list"]
+
+  - name: "posts"
+    label: "Blog Posts"
+    label_singular: "Blog Post"
+    folder: "src/content/posts"
+    create: true
+    slug: "{{slug}}"
+    format: "yaml-frontmatter"
+    extension: "md"
+    fields:
+      - { label: "Title", name: "title", widget: "string", required: true }
+      - { label: "Publication Date", name: "date", widget: "datetime", required: true }
+      - { label: "Cover Image", name: "image", widget: "image", required: false }
+      - { label: "Excerpt", name: "excerpt", widget: "text", required: true }
+      - label: "Content (Markdown)"
+        name: "body"
+        widget: "markdown"
+        required: true
+        buttons: ["bold", "italic", "code", "link", "heading-two", "heading-three", "quote", "bulleted-list", "numbered-list"]

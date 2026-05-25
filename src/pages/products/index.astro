@@ -1,0 +1,84 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import { getCollection } from 'astro:content';
+
+// Retrieve all soaps from products collection
+const allProducts = await getCollection('products');
+---
+
+<Layout title="Explore Our Artisanal Soap Collection" description="Discover our full collection of natural, cold-process handcrafted soaps scented with pure essential oils.">
+  <section class="section shop-header-section">
+    <div class="container text-center">
+      <span class="shop-subtitle">Pure Botanicals</span>
+      <h1 class="shop-title">Handcrafted Soap Shop</h1>
+      <p class="shop-desc">
+        Scented with pure essential oils, colored with natural herbs & clays, and cured for 6 weeks. Gentle cleansing for all skin types.
+      </p>
+    </div>
+  </section>
+
+  <section class="section shop-grid-section">
+    <div class="container">
+      <div class="product-grid">
+        {allProducts.map(product => (
+          <ProductCard
+            title={product.data.title}
+            price={product.data.price}
+            image={product.data.image}
+            description={product.data.description}
+            slug={product.id}
+            available={product.data.available}
+          />
+        ))}
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .shop-header-section {
+    background-color: var(--bg-secondary);
+    padding: 5rem 0 4rem 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .text-center {
+    text-align: center;
+  }
+
+  .shop-subtitle {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--color-accent);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: inline-block;
+  }
+
+  .shop-title {
+    font-size: 3rem;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+  }
+
+  .shop-desc {
+    max-width: 600px;
+    margin: 0 auto;
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+  }
+
+  .shop-grid-section {
+    background-color: var(--bg-primary);
+    padding: 4rem 0;
+  }
+
+  /* Grid Layout */
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2.5rem;
+  }
+</style>

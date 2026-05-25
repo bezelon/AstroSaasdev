@@ -1,0 +1,494 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection, render } from 'astro:content';
+
+// Generate static paths for all products
+export async function getStaticPaths() {
+  const products = await getCollection('products');
+  return products.map(product => ({
+    params: { slug: product.id },
+    props: { product },
+  }));
+}
+
+const { product } = Astro.props;
+const { Content } = await render(product);
+
+// Format price in GBP
+const formattedPrice = `£${product.data.price.toFixed(2)}`;
+---
+
+<Layout title={product.data.title} description={product.data.description}>
+  <div class="container section">
+    <a href="/products" class="back-link">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Back to Shop
+    </a>
+
+    <div class="product-detail-grid">
+      <!-- Product Image -->
+      <div class="product-gallery">
+        <div class="image-wrapper">
+          <img src={product.data.image || "/images/uploads/lavender-soap.png"} alt={product.data.title} class="main-image" />
+          {!product.data.available && <span class="sold-out-badge">Sold Out</span>}
+        </div>
+      </div>
+
+      <!-- Product Info -->
+      <div class="product-info animate-fade-in">
+        <span class="product-category">Handcrafted Soap Bar</span>
+        <h1 class="product-title">{product.data.title}</h1>
+        
+        <div class="price-row">
+          <span class="product-price">{formattedPrice}</span>
+          {product.data.available ? (
+            <span class="status-badge instock">In Stock</span>
+          ) : (
+            <span class="status-badge outofstock">Temporarily Unavailable</span>
+          )}
+        </div>
+
+        <p class="product-summary">{product.data.description}</p>
+
+        <!-- Interactive Checkout Simulator -->
+        <div class="purchase-box">
+          {product.data.available ? (
+            <button id="btn-buy-now" class="btn btn-primary btn-block" data-product-name={product.data.title} data-product-price={product.data.price}>
+              Buy with Stripe Checkout
+            </button>
+          ) : (
+            <button class="btn btn-secondary btn-block" disabled>
+              Out of Stock
+            </button>
+          )}
+          <p class="shipping-info">Free UK shipping on orders over £30. Hand-packaged in plastic-free packaging.</p>
+        </div>
+
+        <!-- Ingredients Section -->
+        {product.data.ingredients && (
+          <div class="info-accordion">
+            <h4 class="accordion-title">Ingredients (Skład)</h4>
+            <div class="accordion-content">
+              <p class="ingredients-list">{product.data.ingredients}</p>
+            </div>
+          </div>
+        )}
+        
+        <!-- Detailed Markdown Content -->
+        <div class="product-details-content markdown-body">
+          <Content />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Simulation Modal -->
+  <div id="sim-modal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Stripe Checkout (Simulation)</h3>
+        <button id="btn-close-modal" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="sim-success-icon">💳</div>
+        <h4>Checkout Process Initiated</h4>
+        <p>In production, this button calls the backend function:</p>
+        <code>POST /api/create-checkout</code>
+        <p>Which generates a secure checkout session on Stripe for:</p>
+        <p class="sim-item"><strong>1x <span id="sim-product-name"></span></strong> at <strong id="sim-product-price"></strong></p>
+        <p class="sim-note">Since we are currently running in <strong>Local Development Mode</strong> (without active API routes), we've successfully simulated this transaction!</p>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-confirm-modal" class="btn btn-sage">Got it, thanks!</button>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script is:inline>
+  (function() {
+    const buyBtn = document.getElementById('btn-buy-now');
+    const modal = document.getElementById('sim-modal');
+    const closeModalBtn = document.getElementById('btn-close-modal');
+    const confirmModalBtn = document.getElementById('btn-confirm-modal');
+    const simName = document.getElementById('sim-product-name');
+    const simPrice = document.getElementById('sim-product-price');
+
+    if (buyBtn && modal) {
+      buyBtn.addEventListener('click', () => {
+        const name = buyBtn.getAttribute('data-product-name');
+        const price = parseFloat(buyBtn.getAttribute('data-product-price')).toFixed(2);
+        
+        simName.textContent = name;
+        simPrice.textContent = '£' + price;
+        
+        modal.classList.remove('hidden');
+      });
+    }
+
+    function closeModal() {
+      if (modal) modal.classList.add('hidden');
+    }
+
+    if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+    if (confirmModalBtn) confirmModalBtn.addEventListener('click', closeModal);
+  })();
+</script>
+
+<style>
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+  }
+
+  .back-link:hover {
+    color: var(--color-accent);
+    transform: translateX(-3px);
+  }
+
+  .product-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 4rem;
+  }
+
+  @media (max-width: 900px) {
+    .product-detail-grid {
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+    }
+  }
+
+  .product-gallery {
+    position: relative;
+  }
+
+  .image-wrapper {
+    position: relative;
+    padding-top: 100%;
+    background-color: var(--bg-secondary);
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+  }
+
+  .main-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .sold-out-badge {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: var(--text-secondary);
+    color: var(--text-light);
+    padding: 0.5rem 1.2rem;
+    border-radius: 30px;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+  }
+
+  .product-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .product-category {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--color-accent);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  .product-title {
+    font-size: 2.8rem;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    line-height: 1.1;
+  }
+
+  @media (max-width: 600px) {
+    .product-title {
+      font-size: 2rem;
+    }
+  }
+
+  .price-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .product-price {
+    font-family: var(--font-serif);
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .status-badge {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 500;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+  }
+
+  .instock {
+    background-color: rgba(138, 154, 134, 0.15);
+    color: var(--color-sage);
+  }
+
+  .outofstock {
+    background-color: rgba(107, 101, 96, 0.1);
+    color: var(--text-secondary);
+  }
+
+  .product-summary {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    font-weight: 300;
+  }
+
+  .purchase-box {
+    background-color: var(--bg-secondary);
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    margin-bottom: 2rem;
+  }
+
+  .btn-block {
+    width: 100%;
+  }
+
+  .shipping-info {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 1rem;
+    text-align: center;
+  }
+
+  .info-accordion {
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    background-color: #ffffff;
+  }
+
+  .accordion-title {
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+  }
+
+  .ingredients-list {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+
+  .product-details-content {
+    border-top: 1px solid var(--border-color);
+    padding-top: 2rem;
+    margin-top: 1rem;
+  }
+
+  /* Markdown body styles within detailed content */
+  .markdown-body :global(h3) {
+    font-size: 1.3rem;
+    color: var(--text-primary);
+    margin: 1.5rem 0 0.5rem 0;
+  }
+
+  .markdown-body :global(ul) {
+    list-style: none;
+    margin: 1rem 0;
+  }
+
+  .markdown-body :global(li) {
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    position: relative;
+    padding-left: 1.2rem;
+  }
+
+  .markdown-body :global(li::before) {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--color-accent);
+    font-weight: bold;
+  }
+
+  .markdown-body :global(p) {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+
+  /* Interactive Simulation Modal */
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s ease;
+  }
+
+  .modal.hidden {
+    display: none;
+    pointer-events: none;
+  }
+
+  .modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(44, 42, 41, 0.6);
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-card {
+    position: relative;
+    background-color: var(--bg-primary);
+    width: 90%;
+    max-width: 500px;
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    z-index: 10001;
+    display: flex;
+    flex-direction: column;
+    animation: modalSlide 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  @keyframes modalSlide {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .modal-header h3 {
+    font-family: var(--font-sans);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    line-height: 1;
+    transition: var(--transition-smooth);
+  }
+
+  .modal-close:hover {
+    color: var(--color-accent);
+  }
+
+  .modal-body {
+    padding: 2rem 1.5rem;
+    text-align: center;
+  }
+
+  .sim-success-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  .modal-body h4 {
+    font-family: var(--font-sans);
+    font-size: 1.3rem;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    font-weight: 600;
+  }
+
+  .modal-body p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+  }
+
+  .modal-body code {
+    display: block;
+    background-color: var(--bg-secondary);
+    padding: 0.5rem;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border-color);
+  }
+
+  .sim-item {
+    font-size: 1rem !important;
+    color: var(--text-primary) !important;
+    background-color: #ffffff;
+    padding: 0.6rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    display: inline-block;
+  }
+
+  .sim-note {
+    font-size: 0.8rem !important;
+    font-style: italic;
+    background-color: rgba(210, 168, 107, 0.15);
+    color: #a0743b !important;
+    padding: 0.8rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+  }
+
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+  }
+</style>

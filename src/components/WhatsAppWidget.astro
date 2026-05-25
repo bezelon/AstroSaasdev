@@ -1,0 +1,56 @@
+---
+interface Props {
+  phoneNumber: string;
+  message?: string;
+}
+
+const { phoneNumber, message = "Hi there, I would like to ask a question about your handcrafted soaps." } = Astro.props;
+
+// Clean phone number (removing spaces, plus signs, leading zeros)
+const cleanedPhone = phoneNumber.replace(/[\s+]/g, '');
+
+// URL encode message for WhatsApp link
+const encodedMessage = encodeURIComponent(message);
+const whatsappUrl = `https://wa.me/${cleanedPhone}?text=${encodedMessage}`;
+---
+
+<a 
+  href={whatsappUrl} 
+  class="whatsapp-floating-bubble" 
+  target="_blank" 
+  rel="noopener noreferrer" 
+  aria-label="Chat with us on WhatsApp"
+>
+  <svg class="wa-svg-icon" viewBox="0 0 32 32" fill="#ffffff" xmlns="http://www.w3.org/2000/svg">
+    <path d="M16 3C9.38 3 4 8.38 4 15c0 2.56.81 4.93 2.18 6.88L5 29l7.33-1.98A11.94 11.94 0 0016 27c6.62 0 12-5.38 12-12S22.62 3 16 3z"></path>
+  </svg>
+</a>
+
+<style>
+  .whatsapp-floating-bubble {
+    position: fixed;
+    right: 25px;
+    bottom: 25px;
+    width: 60px;
+    height: 60px;
+    background-color: #25D366;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+    z-index: 9999;
+    transition: var(--transition-bounce);
+  }
+
+  .whatsapp-floating-bubble:hover {
+    transform: scale(1.15) rotate(5deg);
+    background-color: #20BA5A;
+    box-shadow: 0 8px 25px rgba(37, 211, 102, 0.5);
+  }
+
+  .wa-svg-icon {
+    width: 32px;
+    height: 32px;
+  }
+</style>

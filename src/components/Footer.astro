@@ -1,0 +1,133 @@
+---
+---
+<footer class="footer">
+  <div class="container footer-grid">
+    <div class="footer-info">
+      <h3 class="footer-title">Earth & Lather</h3>
+      <p class="footer-desc">Crafting high-quality, pure botanical soaps for mindful bath rituals. Hand poured in the heart of the United Kingdom.</p>
+    </div>
+    
+    <div class="footer-links">
+      <h4>Quick Links</h4>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/products">Shop Soaps</a></li>
+        <li><a href="/admin/index.html">CMS Admin</a></li>
+      </ul>
+    </div>
+    
+    <div class="footer-contact">
+      <h4>Contact Us</h4>
+      <p>Email: hello@earthandlather.co.uk</p>
+      <p>Studio: Bath, Somerset, United Kingdom</p>
+      <p>WhatsApp: +44 7700 900077</p>
+    </div>
+  </div>
+  
+  <div class="footer-bottom">
+    <div class="container footer-bottom-container">
+      <p>&copy; {new Date().getFullYear()} Earth & Lather. All rights reserved.</p>
+      <div class="footer-legal">
+        <a href="#">Privacy Policy</a>
+        <span class="separator">|</span>
+        <a href="#">Terms of Service</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    background-color: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    padding: 4rem 0 2rem 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1.5fr;
+    gap: 4rem;
+    margin-bottom: 3rem;
+  }
+
+  @media (max-width: 768px) {
+    .footer-grid {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+  }
+
+  .footer-title {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    font-weight: 700;
+  }
+
+  .footer-desc {
+    max-width: 320px;
+    line-height: 1.6;
+  }
+
+  .footer h4 {
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin-bottom: 1.2rem;
+    font-weight: 600;
+  }
+
+  .footer-links ul {
+    list-style: none;
+  }
+
+  .footer-links li {
+    margin-bottom: 0.8rem;
+  }
+
+  .footer-links a:hover {
+    color: var(--color-accent);
+    padding-left: 4px;
+  }
+
+  .footer-contact p {
+    margin-bottom: 0.8rem;
+  }
+
+  .footer-bottom {
+    border-top: 1px solid var(--border-color);
+    padding-top: 2rem;
+  }
+
+  .footer-bottom-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+  }
+
+  @media (max-width: 600px) {
+    .footer-bottom-container {
+      flex-direction: column;
+      gap: 1rem;
+      text-align: center;
+    }
+  }
+
+  .footer-legal {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+  }
+
+  .separator {
+    color: var(--border-color);
+  }
+
+  .footer-legal a:hover {
+    color: var(--color-accent);
+  }
+</style>
