@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Local Server Dashboard // APEX</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Background Animated Canvas -->
+  <canvas id="matrix-canvas"></canvas>
+  <div class="scanlines"></div>
+
+  <div class="app-container">
+    
+    <!-- Main Dashboard Header -->
+    <header class="app-header">
+      <div class="header-logo">
+        <span class="pulse-dot"></span>
+        <h1>APEX // LOCAL_SVR_DASH</h1>
+        <span class="version">v1.3.0</span>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary" id="btn-sync-discover" title="Sync with PORTS_LOG.md and scan Sandbox directory">
+          SYNC & DISCOVER
+        </button>
+        <button class="btn btn-primary" id="btn-open-modal">
+          <span class="plus-icon">+</span> REGISTER NEW SERVER
+        </button>
+      </div>
+    </header>
+
+    <!-- Content Area -->
+    <main class="dashboard-content">
+      
+      <!-- Grid of Servers -->
+      <section class="server-grid" id="server-grid">
+        <!-- Rendered dynamically -->
+      </section>
+
+      <!-- Terminal Logs Console -->
+      <section class="terminal-panel" id="terminal-panel">
+        <div class="terminal-header">
+          <div class="terminal-title">
+            <span class="prompt-symbol">&gt;_</span> CONSOLE OUTPUT: <span id="current-terminal-server">No Server Selected</span>
+          </div>
+          <div class="terminal-controls">
+            <button class="btn btn-sm btn-outline" id="btn-clear-logs">CLEAR LOGS</button>
+            <button class="btn btn-sm btn-outline" id="btn-scroll-bottom">AUTO-SCROLL</button>
+          </div>
+        </div>
+        <div class="terminal-body" id="terminal-body">
+          <div class="system-message">[System] Click a server card above to attach this console to its output stream.</div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Add Server Modal Dialog -->
+  <div class="modal-overlay" id="add-server-modal">
+    <div class="modal-content glassmorphism">
+      <div class="modal-header">
+        <h2>[REGISTER_NEW_NODE]</h2>
+        <button class="close-modal" id="btn-close-modal">&times;</button>
+      </div>
+      <form id="add-server-form" class="modal-form">
+        <div class="form-group">
+          <label for="server-name">SERVER NAME</label>
+          <input type="text" id="server-name" required placeholder="e.g. Astro Blog Portfolio">
+        </div>
+        <div class="form-group">
+          <label for="server-path">DIRECTORY ABSOLUTE PATH</label>
+          <input type="text" id="server-path" required placeholder="e.g. C:/Projects/MyAstroSite">
+        </div>
+        <div class="form-group">
+          <label for="server-port">PORT</label>
+          <input type="number" id="server-port" required placeholder="e.g. 4321">
+        </div>
+        <div class="form-group">
+          <label for="server-cmd">SHELL COMMAND</label>
+          <input type="text" id="server-cmd" required placeholder="npm run dev -- --port 4321" value="npm run dev">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-modal">CANCEL</button>
+          <button type="submit" class="btn btn-primary-neon">BOOTSTRAP SERVER</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JS Code -->
+  <script>
+    // System Stores
+    let servers = [];
+    let serverStatuses = {}; // Map of id -> 'online' | 'offline' | 'starting'
+    let serverLogs = {}; // Map of id -> Array of log strings
+    let activeServerId = null;
+    let autoScroll = true;
+    let editingServerId = null;
+
+    // Elements
+    const serverGrid = document.getElementById('server-grid');
+    const terminalBody = document.getElementById('terminal-body');
+    const currentTerminalServer = document.getElementById('current-terminal-server');
+    const btnOpenModal = document.getElementById('btn-open-modal');
+    const btnCloseModal = document.getElementById('btn-close-modal');
+    const btnCancelModal = document.getElementById('btn-cancel-modal');
+    const addServerModal = document.getElementById('add-server-modal');
+    const addServerForm = document.getElementById('add-server-form');
+    const btnClearLogs = document.getElementById('btn-clear-logs');
+    const btnScrollBottom = document.getElementById('btn-scroll-bottom');
+
+    // Matrix Background Animation
+    const canvas = document.getElementById('matrix-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$+-*/=<>!@#%&';
+    const fontSize = 14;
+    let columns = canvas.width / fontSize;
+    let drops = Array(Math.floor(columns)).fill(1);
+
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(7, 8, 11, 0.08)'; // Deep background fade
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = 'rgba(0, 255, 102, 0.18)'; // Very dim green digital rain
+      ctx.font = fontSize + 'px monospace';
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = letters.charAt(Math.floor(Math.random() * letters.length));
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    }
+    setInterval(drawMatrix, 35);
+
+    // Initial Load
+    async function loadDashboard() {
+      servers = await window.api.getServers();
+      servers.forEach(s => {
+        if (!serverLogs[s.id]) serverLogs[s.id] = [];
+        if (!serverStatuses[s.id]) serverStatuses[s.id] = 'offline';
+      });
+      renderGrid();
+    }
+
+    // Render server cards
+    function renderGrid() {
+      serverGrid.innerHTML = '';
+      if (servers.length === 0) {
+        serverGrid.innerHTML = `
+          <div class="empty-state">
+            <p>NO SERVERS REGISTERED</p>
+            <p class="sub">Register a local Astro directory to start monitoring processes.</p>
+          </div>
+        `;
+        return;
+      }
+
+      servers.forEach(s => {
+        const status = serverStatuses[s.id] || 'offline';
+        const cardClass = `server-card ${status} ${activeServerId === s.id ? 'active' : ''}`;
+        
+        let statusText = 'OFFLINE';
+        if (status === 'online') statusText = 'ONLINE';
+        if (status === 'starting') statusText = 'BOOTING...';
+        if (status === 'occupied') statusText = '⚠️ PORT BUSY';
+
+        const isChecked = (status === 'online' || status === 'starting') ? 'checked' : '';
+
+        // Clean paths for display
+        const pathSnippet = s.path.length > 35 ? '...' + s.path.substring(s.path.length - 35) : s.path;
+
+        serverGrid.innerHTML += `
+          <div class="${cardClass}" onclick="selectServer('${s.id}')">
+            <div class="card-header-btns">
+              <button class="edit-btn" onclick="editServer(event, '${s.id}')" title="Edit configuration">&#9998;</button>
+              <button class="delete-btn" onclick="deleteServer(event, '${s.id}')" title="Delete configuration">&times;</button>
+            </div>
+            <div class="card-glow"></div>
+            <div class="server-info">
+              <a href="http://localhost:${s.port}" target="_blank" class="url-link" onclick="event.stopPropagation();">http://localhost:${s.port}</a>
+              <h3>${s.name}</h3>
+              <p class="path" title="${s.path}">${pathSnippet}</p>
+            </div>
+            <div class="server-actions">
+              <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span class="status-label">${statusText}</span>
+              </div>
+              <div class="control-row">
+                ${status === 'occupied' ? `<button class="btn btn-sm btn-outline-danger" onclick="freePort(event, ${s.port}, this)">FREE PORT</button>` : ''}
+                ${status === 'online' ? `<a href="http://localhost:${s.port}" target="_blank" class="launch-link" onclick="event.stopPropagation();">OPEN SITE</a>` : ''}
+                <label class="switch" onclick="event.stopPropagation();">
+                  <input type="checkbox" ${isChecked} ${status === 'occupied' ? 'disabled' : ''} onchange="toggleServer('${s.id}', this.checked)">
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    // Toggle server processes
+    function toggleServer(id, shouldStart) {
+      if (shouldStart) {
+        serverStatuses[id] = 'starting';
+        serverLogs[id] = [`[System] Initializing server bootstrap sequence...\n`];
+        window.api.startServer(id);
+      } else {
+        window.api.stopServer(id);
+      }
+      renderGrid();
+      // Auto-select the server logs if toggled
+      selectServer(id);
+    }
+
+    // Delete server configuration
+    async function deleteServer(event, id) {
+      event.stopPropagation();
+      if (confirm('Are you sure you want to remove this server configuration from your dashboard?')) {
+        servers = await window.api.deleteServer(id);
+        delete serverStatuses[id];
+        delete serverLogs[id];
+        if (activeServerId === id) {
+          activeServerId = null;
+          terminalBody.innerHTML = '<div class="system-message">[System] Attached server deleted. Select another server.</div>';
+          currentTerminalServer.innerText = 'No Server Selected';
+        }
+        renderGrid();
+      }
+    }
+
+    // Select server to view logs
+    function selectServer(id) {
+      activeServerId = id;
+      const server = servers.find(s => s.id === id);
+      currentTerminalServer.innerText = server ? `${server.name} [localhost:${server.port}]` : 'No Server Selected';
+      
+      // Highlight active card
+      document.querySelectorAll('.server-card').forEach(card => card.classList.remove('active'));
+      const activeCard = Array.from(document.querySelectorAll('.server-card')).find((_, idx) => servers[idx]?.id === id);
+      if (activeCard) activeCard.classList.add('active');
+
+      displayLogs();
+    }
+
+    // Display logs for selected server
+    function displayLogs() {
+      if (!activeServerId) return;
+      
+      const logs = serverLogs[activeServerId] || [];
+      if (logs.length === 0) {
+        terminalBody.innerHTML = '<div class="system-message">[System] No terminal output generated yet.</div>';
+        return;
+      }
+
+      terminalBody.innerHTML = logs.map(line => {
+        return `<div class="log-line">${ansiToHtml(line)}</div>`;
+      }).join('');
+
+      if (autoScroll) {
+        terminalBody.scrollTop = terminalBody.scrollHeight;
+      }
+    }
+
+    // Simple ANSI-to-HTML parser (Astro compilation colors helper)
+    function ansiToHtml(text) {
+      const lookup = {
+        '1': 'font-weight:bold',
+        '3': 'font-style:italic',
+        '30': 'color:#333',
+        '31': 'color:#ff0055', // Red
+        '32': 'color:#00ff66', // Green (Astro compile success)
+        '33': 'color:#ffb700', // Yellow
+        '34': 'color:#00f0ff', // Blue
+        '35': 'color:#ff00ff', // Magenta
+        '36': 'color:#00f0ff', // Cyan
+        '37': 'color:#fff',
+        '90': 'color:#666',
+        '91': 'color:#ff5555',
+        '92': 'color:#55ff55',
+        '93': 'color:#ffff55',
+        '94': 'color:#5555ff',
+        '95': 'color:#ff55ff',
+        '96': 'color:#55ffff',
+        '97': 'color:#ffffff'
+      };
+
+      let escaped = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      const regex = /\u001b\[([0-9;]+)m/g;
+      let html = '';
+      let lastIndex = 0;
+      let currentStyles = [];
+      let match;
+
+      while ((match = regex.exec(escaped)) !== null) {
+        html += escaped.substring(lastIndex, match.index);
+        lastIndex = regex.lastIndex;
+
+        const codes = match[1].split(';');
+        if (codes.includes('0') || codes.length === 0) {
+          if (currentStyles.length > 0) {
+            html += '</span>'.repeat(currentStyles.length);
+            currentStyles = [];
+          }
+        } else {
+          const styleRules = codes.map(code => lookup[code]).filter(Boolean);
+          if (styleRules.length > 0) {
+            html += `<span style="${styleRules.join(';')}">`;
+            currentStyles.push(true);
+          }
+        }
+      }
+
+      html += escaped.substring(lastIndex);
+      if (currentStyles.length > 0) {
+        html += '</span>'.repeat(currentStyles.length);
+      }
+      return html;
+    }
+
+    // Log Clear / Scroll
+    btnClearLogs.addEventListener('click', () => {
+      if (activeServerId) {
+        serverLogs[activeServerId] = [];
+        displayLogs();
+      }
+    });
+
+    btnScrollBottom.addEventListener('click', () => {
+      autoScroll = true;
+      terminalBody.scrollTop = terminalBody.scrollHeight;
+      btnScrollBottom.classList.add('active');
+      setTimeout(() => btnScrollBottom.classList.remove('active'), 200);
+    });
+
+    // Modals control
+    btnOpenModal.addEventListener('click', () => {
+      editingServerId = null;
+      addServerForm.reset();
+      document.getElementById('server-cmd').value = 'npm run dev';
+      addServerModal.querySelector('h2').innerText = '[REGISTER_NEW_NODE]';
+      addServerModal.classList.add('visible');
+    });
+    
+    const closeModal = () => {
+      editingServerId = null;
+      addServerModal.classList.remove('visible');
+    };
+    
+    btnCloseModal.addEventListener('click', closeModal);
+    btnCancelModal.addEventListener('click', closeModal);
+
+    addServerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const serverData = {
+        name: document.getElementById('server-name').value,
+        path: document.getElementById('server-path').value.replace(/\\/g, '/'),
+        port: parseInt(document.getElementById('server-port').value),
+        cmd: document.getElementById('server-cmd').value
+      };
+
+      if (editingServerId) {
+        servers = await window.api.editServer(editingServerId, serverData);
+        editingServerId = null;
+      } else {
+        servers = await window.api.addServer(serverData);
+        // Find the newly added server to initialize its keys
+        const newS = servers[servers.length - 1];
+        if (newS) {
+          serverLogs[newS.id] = [];
+          serverStatuses[newS.id] = 'offline';
+        }
+      }
+
+      addServerForm.reset();
+      document.getElementById('server-cmd').value = 'npm run dev';
+      addServerModal.classList.remove('visible');
+      renderGrid();
+    });
+
+    function editServer(event, id) {
+      event.stopPropagation();
+      const s = servers.find(x => x.id === id);
+      if (!s) return;
+      
+      editingServerId = id;
+      document.getElementById('server-name').value = s.name;
+      document.getElementById('server-path').value = s.path;
+      document.getElementById('server-port').value = s.port;
+      document.getElementById('server-cmd').value = s.cmd;
+      
+      addServerModal.querySelector('h2').innerText = `[EDIT_NODE // ID: ${id}]`;
+      addServerModal.classList.add('visible');
+    }
+
+    async function freePort(event, port, button) {
+      event.stopPropagation();
+      if (!confirm(`Are you sure you want to force terminate all processes listening on port ${port}?`)) return;
+      
+      const originalText = button.innerText;
+      button.innerText = 'FREEING...';
+      button.disabled = true;
+      
+      const killed = await window.api.freePort(port);
+      if (killed) {
+        button.innerText = 'KILLED';
+        // Status checks will automatically clear state in 1.5s
+      } else {
+        button.innerText = 'FAILED';
+        button.disabled = false;
+        setTimeout(() => { button.innerText = originalText; }, 2000);
+      }
+    }
+
+    // Listeners from Main process
+    window.api.onStatusChange(({ id, status }) => {
+      const oldStatus = serverStatuses[id];
+      if (oldStatus !== status) {
+        serverStatuses[id] = status;
+        renderGrid();
+      }
+    });
+
+    window.api.onServerLog(({ id, text }) => {
+      if (!serverLogs[id]) serverLogs[id] = [];
+      
+      // Limit logs buffer size to 500 lines to avoid high memory usage
+      serverLogs[id].push(text);
+      if (serverLogs[id].length > 500) {
+        serverLogs[id].shift();
+      }
+
+      if (activeServerId === id) {
+        // Append line directly if scrolled to bottom to prevent full re-renders
+        const isAtBottom = terminalBody.scrollHeight - terminalBody.clientHeight <= terminalBody.scrollTop + 50;
+        
+        const lineDiv = document.createElement('div');
+        lineDiv.className = 'log-line';
+        lineDiv.innerHTML = ansiToHtml(text);
+        
+        // Remove notice message if first logs
+        const sysMsg = terminalBody.querySelector('.system-message');
+        if (sysMsg) sysMsg.remove();
+        
+        terminalBody.appendChild(lineDiv);
+
+        if (autoScroll && isAtBottom) {
+          terminalBody.scrollTop = terminalBody.scrollHeight;
+        }
+      }
+    });
+
+    // Handle manual scroll changes
+    terminalBody.addEventListener('scroll', () => {
+      const isAtBottom = terminalBody.scrollHeight - terminalBody.clientHeight <= terminalBody.scrollTop + 5;
+      autoScroll = isAtBottom;
+    });
+
+    // Auto-sync config updates
+    window.api.onServersUpdated(() => {
+      loadDashboard();
+    });
+
+    const btnSyncDiscover = document.getElementById('btn-sync-discover');
+    if (btnSyncDiscover) {
+      btnSyncDiscover.addEventListener('click', async () => {
+        const originalText = btnSyncDiscover.innerText;
+        btnSyncDiscover.innerText = 'SYNCING...';
+        btnSyncDiscover.disabled = true;
+        
+        await window.api.syncAndDiscover();
+        
+        btnSyncDiscover.innerText = 'SYNCED';
+        setTimeout(() => {
+          btnSyncDiscover.innerText = originalText;
+          btnSyncDiscover.disabled = false;
+        }, 1200);
+      });
+    }
+
+    // Start Dashboard load
+    loadDashboard();
+  </script>
+</body>
+</html>

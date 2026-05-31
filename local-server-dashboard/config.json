@@ -1,0 +1,37 @@
+[
+  {
+    "id": "1",
+    "name": "Soap Shop & Blog (Astro Root)",
+    "path": "c:/Users/Lukasz/Documents/Antigravity/Sandbox/Astro",
+    "cmd": "npm run dev -- --port 4321",
+    "port": 4321
+  },
+  {
+    "id": "2",
+    "name": "Car Repair & Tuning (Garage)",
+    "path": "c:/Users/Lukasz/Documents/Antigravity/Sandbox/Garage",
+    "cmd": "npm run dev -- --port 4322",
+    "port": 4322
+  },
+  {
+    "id": "3",
+    "name": "Creative Portfolio (Portfolio)",
+    "path": "c:/Users/Lukasz/Documents/Antigravity/Sandbox/Portfolio",
+    "cmd": "npm run dev -- --port 4323",
+    "port": 4323
+  },
+  {
+    "id": "4",
+    "name": "Beauty & Wellness (Salon)",
+    "path": "c:/Users/Lukasz/Documents/Antigravity/Sandbox/Salon",
+    "cmd": "npm run dev",
+    "port": 4324
+  },
+  {
+    "id": "5",
+    "name": "SaaS Showroom (Showroom)",
+    "path": "c:/Users/Lukasz/Documents/Antigravity/Sandbox/Astro/showroom",
+    "cmd": "npm run dev",
+    "port": 4325
+  }
+]

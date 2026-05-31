@@ -1,10 +1,11 @@
 ---
+import businessData from '../content/business.json';
 ---
 <footer class="footer">
   <div class="container footer-grid">
     <div class="footer-info">
-      <h3 class="footer-title">Earth & Lather</h3>
-      <p class="footer-desc">Crafting high-quality, pure botanical soaps for mindful bath rituals. Hand poured in the heart of the United Kingdom.</p>
+      <h3 class="footer-title">{businessData.companyName}</h3>
+      <p class="footer-desc">{businessData.companyDesc}</p>
     </div>
     
     <div class="footer-links">
@@ -18,15 +19,15 @@
     
     <div class="footer-contact">
       <h4>Contact Us</h4>
-      <p>Email: hello@earthandlather.co.uk</p>
-      <p>Studio: Bath, Somerset, United Kingdom</p>
-      <p>WhatsApp: +44 7700 900077</p>
+      <p>Email: {businessData.companyEmail}</p>
+      <p>Studio: {businessData.companyAddress}</p>
+      <p>WhatsApp: {businessData.whatsAppNumber}</p>
     </div>
   </div>
   
   <div class="footer-bottom">
     <div class="container footer-bottom-container">
-      <p>&copy; {new Date().getFullYear()} Earth & Lather. All rights reserved.</p>
+      <p>&copy; {new Date().getFullYear()} {businessData.companyName}. All rights reserved.</p>
       <div class="footer-legal">
         <a href="#">Privacy Policy</a>
         <span class="separator">|</span>

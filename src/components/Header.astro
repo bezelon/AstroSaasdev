@@ -1,10 +1,17 @@
 ---
+import businessData from '../content/business.json';
 ---
 <header class="header">
   <div class="container header-container">
     <a href="/" class="logo">
-      <span class="logo-text">Earth & Lather</span>
-      <span class="logo-sub">Artisanal Soapry</span>
+      {businessData.logoOption && businessData.logoOption !== 'none' ? (
+        <img src="/images/logo.png" alt={businessData.companyName} class="logo-img" />
+      ) : (
+        <>
+          <span class="logo-text">{businessData.companyName}</span>
+          <span class="logo-sub">{businessData.companySub}</span>
+        </>
+      )}
     </a>
     
     <nav class="nav">

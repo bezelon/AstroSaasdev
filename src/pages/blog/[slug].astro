@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { getCollection, render } from 'astro:content';
+import businessData from '../../content/business.json';
 
 // Generate static paths for all blog posts
 export async function getStaticPaths() {
@@ -38,7 +39,7 @@ function formatDate(dateString: string | Date) {
         <h1 class="post-title">{post.data.title}</h1>
         <div class="post-author">
           <span class="author-avatar">🌿</span>
-          <span class="author-name">by Earth & Lather Studio</span>
+          <span class="author-name">by {businessData.companyName} Studio</span>
         </div>
       </header>
 

@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import SoapHero from '../components/SoapHero.astro';
 import ProductCard from '../components/ProductCard.astro';
 import { getCollection } from 'astro:content';
+import businessData from '../content/business.json';
 
 // Get all products and sort/filter to get top 3 available ones as featured
 const allProducts = await getCollection('products');
@@ -59,7 +60,7 @@ const latestPosts = allPosts
         <span class="story-subtitle">The Soapmaker's Art</span>
         <h2 class="story-title">Crafted in Harmony with Nature</h2>
         <p class="story-text">
-          Earth & Lather was born from a desire to return to pure, simple, and skin-loving bath rituals. We believe that what you put on your body is just as important as what you put in it.
+          {businessData.companyName} was born from a desire to return to pure, simple, and skin-loving bath rituals. We believe that what you put on your body is just as important as what you put in it.
         </p>
         <p class="story-text">
           Using the traditional cold-process soapmaking method, we combine nourishing plant-based oils (like organic olive and coconut oils) and butter (shea and cocoa) with distilled botanicals and clays. Our soaps cure naturally for six weeks, preserving the moisture-rich natural glycerin that commercial soaps strip away.

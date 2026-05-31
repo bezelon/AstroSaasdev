@@ -4,13 +4,14 @@ import Footer from '../components/Footer.astro';
 import WhatsAppWidget from '../components/WhatsAppWidget.astro';
 import CookieConsent from '../components/CookieConsent.astro';
 import '../styles/global.css';
+import businessData from '../content/business.json';
 
 interface Props {
   title: string;
   description?: string;
 }
 
-const { title, description = "Handcrafted organic soaps made with natural ingredients, traditional cold-process method, and pure essential oils." } = Astro.props;
+const { title, description = businessData.companyDesc } = Astro.props;
 ---
 
 <!doctype html>
@@ -22,19 +23,19 @@ const { title, description = "Handcrafted organic soaps made with natural ingred
     <meta name="generator" content={Astro.generator} />
     
     <!-- Primary Meta Tags -->
-    <title>{title} | Earth & Lather</title>
-    <meta name="title" content={`${title} | Earth & Lather`} />
+    <title>{title} | {businessData.companyName}</title>
+    <meta name="title" content={`${title} | ${businessData.companyName}`} />
     <meta name="description" content={description} />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content={`${title} | Earth & Lather`} />
+    <meta property="og:title" content={`${title} | ${businessData.companyName}`} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content="/images/uploads/lavender-soap.png" />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:title" content={`${title} | Earth & Lather`} />
+    <meta property="twitter:title" content={`${title} | ${businessData.companyName}`} />
     <meta property="twitter:description" content={description} />
     <meta property="twitter:image" content="/images/uploads/lavender-soap.png" />
   </head>
@@ -46,9 +47,17 @@ const { title, description = "Handcrafted organic soaps made with natural ingred
     <Footer />
     
     <!-- Pure HTML/CSS Floating WhatsApp Widget -->
-    <WhatsAppWidget phoneNumber="+447700900077" message="Hello! I would like to ask about your natural soaps." />
+    <WhatsAppWidget phoneNumber={businessData.whatsAppNumber} message={businessData.whatsappMessage} />
     
     <!-- GDPR Compliant Cookie Consent Banner -->
     <CookieConsent />
   </body>
 </html>
+
+<style is:global define:vars={{ accentColor: businessData.accentColor }}>
+  :root {
+    --color-accent: var(--accentColor);
+    --color-accent-hover: var(--accentColor);
+  }
+</style>
+

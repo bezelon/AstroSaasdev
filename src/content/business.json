@@ -1,0 +1,11 @@
+{
+  "companyName": "Earth & Lather",
+  "companySub": "Artisanal Soapry",
+  "companyDesc": "Crafting high-quality, pure botanical soaps for mindful bath rituals. Hand poured in the heart of the United Kingdom.",
+  "companyEmail": "hello@earthandlather.co.uk",
+  "companyAddress": "Bath, Somerset, United Kingdom",
+  "whatsAppNumber": "+447700900077",
+  "whatsappMessage": "Hello! I would like to ask about your natural soaps.",
+  "stripePublicKey": "pk_test_51Px...Apex",
+  "accentColor": "#C58F72"
+}
