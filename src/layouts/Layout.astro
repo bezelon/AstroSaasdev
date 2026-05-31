@@ -54,10 +54,12 @@ const { title, description = businessData.companyDesc } = Astro.props;
   </body>
 </html>
 
-<style is:global define:vars={{ accentColor: businessData.accentColor }}>
+<style is:global define:vars={{ accentColor: businessData.accentColor, secondaryColor: businessData.secondaryColor }}>
   :root {
     --color-accent: var(--accentColor);
     --color-accent-hover: var(--accentColor);
+    --color-sage: var(--secondaryColor);
+    --color-sage-hover: var(--secondaryColor);
   }
 </style>
 
